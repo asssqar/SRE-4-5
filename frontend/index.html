@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Microservices Control Panel</title>
+    <style>
+      :root {
+        --bg: #f3f5fb;
+        --panel: #ffffff;
+        --border: #dbe2ee;
+        --text: #1f2a44;
+        --muted: #61708f;
+        --primary: #3265ff;
+        --primary-soft: #e8efff;
+        --sidebar: #111b35;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 260px 1fr;
+      }
+      .sidebar {
+        background: linear-gradient(180deg, #0e1730 0%, var(--sidebar) 100%);
+        color: #dce6ff;
+        padding: 22px 14px;
+        border-right: 1px solid #1c2a52;
+      }
+      .brand {
+        padding: 0 10px 16px;
+        border-bottom: 1px solid #253766;
+        margin-bottom: 16px;
+      }
+      .brand h1 { margin: 0; font-size: 18px; color: #fff; }
+      .brand p { margin: 6px 0 0; font-size: 13px; color: #9fb3e8; }
+      .nav { display: flex; flex-direction: column; gap: 8px; }
+      .nav button {
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        color: #dce6ff;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .nav button:hover { background: #172951; }
+      .nav button.active {
+        background: #24438a;
+        border-color: #4470d5;
+      }
+      .content {
+        padding: 24px;
+      }
+      .toolbar {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+      .muted { color: var(--muted); margin-right: auto; }
+      .panel {
+        display: none;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+      }
+      .panel.active { display: block; }
+      .panel h2 { margin-top: 0; margin-bottom: 6px; }
+      .panel p { color: var(--muted); margin-top: 0; }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0;
+      }
+      input {
+        min-width: 180px;
+        padding: 10px 11px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        outline: none;
+      }
+      input:focus { border-color: #8aa6ff; box-shadow: 0 0 0 2px var(--primary-soft); }
+      button.action {
+        background: var(--primary);
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button.action.secondary {
+        background: #405579;
+      }
+      pre {
+        margin: 0;
+        background: #0d1428;
+        color: #d4def7;
+        padding: 12px;
+        border-radius: 10px;
+        min-height: 190px;
+        overflow: auto;
+      }
+      @media (max-width: 900px) {
+        .app { grid-template-columns: 1fr; }
+        .sidebar { border-right: 0; border-bottom: 1px solid #1c2a52; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <h1>SRE Service Console</h1>
+          <p>Navigate between microservices</p>
+        </div>
+        <nav class="nav">
+          <button class="active" data-service="auth" onclick="showPanel('auth', this)">Auth Service</button>
+          <button data-service="product" onclick="showPanel('product', this)">Product Service</button>
+          <button data-service="order" onclick="showPanel('order', this)">Order Service</button>
+          <button data-service="user" onclick="showPanel('user', this)">User Service</button>
+          <button data-service="chat" onclick="showPanel('chat', this)">Chat Service</button>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <div class="toolbar">
+          <span class="muted">Single-page panel to work with all 5 microservices.</span>
+          <button class="action" onclick="checkAllHealth()">Check all health</button>
+          <button class="action secondary" onclick="clearAll()">Clear output</button>
+        </div>
+
+        <section class="panel active" id="panel-auth">
+          <h2>Auth Service</h2>
+          <p>Health check and login actions.</p>
+          <div class="row">
+            <button class="action" onclick="apiCall('/api/auth/health', 'GET', null, 'authOut')">Health</button>
+            <button class="action secondary" onclick="apiCall('/api/auth/login', 'GET', null, 'authOut')">Login GET</button>
+          </div>
+          <div class="row">
+            <input id="authUser" placeholder="username" value="demo" />
+            <input id="authPass" placeholder="password" value="demo123" />
+            <button class="action" onclick="loginPost()">Login POST</button>
+          </div>
+          <pre id="authOut"></pre>
+        </section>
+
+        <section class="panel" id="panel-product">
+          <h2>Product Service</h2>
+          <p>Read product catalog and create new products.</p>
+          <div class="row">
+            <button class="action" onclick="apiCall('/api/product/health', 'GET', null, 'productOut')">Health</button>
+            <button class="action secondary" onclick="apiCall('/api/product/products', 'GET', null, 'productOut')">List products</button>
+          </div>
+          <div class="row">
+            <input id="productName" placeholder="product name" value="Headset" />
+            <input id="productPrice" placeholder="price" value="49.99" />
+            <button class="action" onclick="createProduct()">Create product</button>
+          </div>
+          <pre id="productOut"></pre>
+        </section>
+
+        <section class="panel" id="panel-order">
+          <h2>Order Service</h2>
+          <p>Fetch and create orders.</p>
+          <div class="row">
+            <button class="action" onclick="apiCall('/api/order/health', 'GET', null, 'orderOut')">Health</button>
+            <button class="action secondary" onclick="apiCall('/api/order/orders', 'GET', null, 'orderOut')">List orders</button>
+          </div>
+          <div class="row">
+            <input id="orderUserId" placeholder="user id" value="100" />
+            <input id="orderAmount" placeholder="amount" value="99.5" />
+            <button class="action" onclick="createOrder()">Create order</button>
+          </div>
+          <pre id="orderOut"></pre>
+        </section>
+
+        <section class="panel" id="panel-user">
+          <h2>User Service</h2>
+          <p>Browse users and add a new user.</p>
+          <div class="row">
+            <button class="action" onclick="apiCall('/api/user/health', 'GET', null, 'userOut')">Health</button>
+            <button class="action secondary" onclick="apiCall('/api/user/users', 'GET', null, 'userOut')">List users</button>
+          </div>
+          <div class="row">
+            <input id="userName" placeholder="new user name" value="Charlie" />
+            <button class="action" onclick="createUser()">Create user</button>
+          </div>
+          <pre id="userOut"></pre>
+        </section>
+
+        <section class="panel" id="panel-chat">
+          <h2>Chat Service</h2>
+          <p>Read and send chat messages.</p>
+          <div class="row">
+            <button class="action" onclick="apiCall('/api/chat/health', 'GET', null, 'chatOut')">Health</button>
+            <button class="action secondary" onclick="apiCall('/api/chat/messages', 'GET', null, 'chatOut')">List messages</button>
+          </div>
+          <div class="row">
+            <input id="chatUser" placeholder="user" value="DemoUser" />
+            <input id="chatMessage" placeholder="message" value="Hello from UI" />
+            <button class="action" onclick="sendMessage()">Send message</button>
+          </div>
+          <pre id="chatOut"></pre>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      function showPanel(service, btn) {
+        document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
+        document.querySelectorAll(".nav button").forEach((item) => item.classList.remove("active"));
+        document.getElementById(`panel-${service}`).classList.add("active");
+        btn.classList.add("active");
+      }
+
+      async function apiCall(url, method, body, outId) {
+        const out = document.getElementById(outId);
+        out.textContent = "Loading...";
+        try {
+          const res = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: body ? JSON.stringify(body) : undefined
+          });
+          let data;
+          try {
+            data = await res.json();
+          } catch {
+            data = { message: "No JSON response body" };
+          }
+          out.textContent = JSON.stringify({ status: res.status, data }, null, 2);
+        } catch (e) {
+          out.textContent = JSON.stringify({ error: String(e) }, null, 2);
+        }
+      }
+
+      function loginPost() {
+        apiCall("/api/auth/login", "POST", {
+          username: document.getElementById("authUser").value,
+          password: document.getElementById("authPass").value
+        }, "authOut");
+      }
+
+      function createProduct() {
+        apiCall("/api/product/products", "POST", {
+          name: document.getElementById("productName").value,
+          price: Number(document.getElementById("productPrice").value)
+        }, "productOut");
+      }
+
+      function createOrder() {
+        apiCall("/api/order/orders", "POST", {
+          user_id: Number(document.getElementById("orderUserId").value),
+          amount: Number(document.getElementById("orderAmount").value)
+        }, "orderOut");
+      }
+
+      function createUser() {
+        apiCall("/api/user/users", "POST", {
+          name: document.getElementById("userName").value
+        }, "userOut");
+      }
+
+      function sendMessage() {
+        apiCall("/api/chat/messages", "POST", {
+          user: document.getElementById("chatUser").value,
+          message: document.getElementById("chatMessage").value
+        }, "chatOut");
+      }
+
+      function clearAll() {
+        ["authOut", "productOut", "orderOut", "userOut", "chatOut"].forEach((id) => {
+          document.getElementById(id).textContent = "";
+        });
+      }
+
+      function checkAllHealth() {
+        apiCall("/api/auth/health", "GET", null, "authOut");
+        apiCall("/api/product/health", "GET", null, "productOut");
+        apiCall("/api/order/health", "GET", null, "orderOut");
+        apiCall("/api/user/health", "GET", null, "userOut");
+        apiCall("/api/chat/health", "GET", null, "chatOut");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: "auth-service"
+    static_configs:
+      - targets: ["auth-service:8001"]
+    metrics_path: /metrics
+
+  - job_name: "product-service"
+    static_configs:
+      - targets: ["product-service:8002"]
+    metrics_path: /metrics
+
+  - job_name: "order-service"
+    static_configs:
+      - targets: ["order-service:8003"]
+    metrics_path: /metrics
+
+  - job_name: "user-service"
+    static_configs:
+      - targets: ["user-service:8004"]
+    metrics_path: /metrics
+
+  - job_name: "chat-service"
+    static_configs:
+      - targets: ["chat-service:8005"]
+    metrics_path: /metrics

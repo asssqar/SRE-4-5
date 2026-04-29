@@ -1,0 +1,93 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+      - user-service
+      - chat-service
+
+  auth-service:
+    build: ./services/auth
+    environment:
+      - SERVICE_NAME=auth-service
+      - PORT=8001
+    ports:
+      - "8001:8001"
+
+  product-service:
+    build: ./services/product
+    environment:
+      - SERVICE_NAME=product-service
+      - PORT=8002
+    ports:
+      - "8002:8002"
+
+  order-service:
+    build: ./services/order
+    environment:
+      - SERVICE_NAME=order-service
+      - PORT=8003
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-orders_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - BROKEN_DB_CONFIG=${BROKEN_DB_CONFIG:-false}
+    ports:
+      - "8003:8003"
+    depends_on:
+      - postgres
+
+  user-service:
+    build: ./services/user
+    environment:
+      - SERVICE_NAME=user-service
+      - PORT=8004
+    ports:
+      - "8004:8004"
+
+  chat-service:
+    build: ./services/chat
+    environment:
+      - SERVICE_NAME=chat-service
+      - PORT=8005
+    ports:
+      - "8005:8005"
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=orders_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+      - user-service
+      - chat-service
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
