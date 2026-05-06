@@ -21,7 +21,7 @@ Ports opened by security group:
 - 22 (SSH)
 - 80 (HTTP)
 - 3000 (Grafana)
-- 9090 (Prometheus)
+- 9091 (Prometheus)
 
 ### Evidence
 - Screenshot A: `terraform init` success
@@ -84,3 +84,50 @@ Postmortem action items:
 ## 6. Conclusion
 
 The implementation demonstrates reproducible infrastructure provisioning, containerized service deployment, observability integration, and structured incident response with documented recovery and preventive actions.
+
+---
+
+# Assignment 6: Automation + Capacity Planning Submission
+
+## 1. Automation (SRE)
+
+Implemented automation mechanisms to reduce manual operations and improve reliability:
+- Docker Compose provides consistent multi-container deployment (`docker compose up -d`)
+- Self-healing via `restart: unless-stopped` for services
+- Health endpoints (`/health`) for each microservice
+- Docker healthchecks for early failure detection and recovery workflows
+- Configuration validation through documented required environment variables (see `DEPLOYMENT.md`)
+
+## 2. Monitoring + Alerting
+
+Prometheus configuration:
+- Scrapes each service `/metrics`
+- Loads alert rules from `monitoring/alerts.yml`
+
+Implemented alert rules:
+- Service down (`ServiceDown`)
+- Order DB misconfiguration (`OrderServiceDBNotReady`)
+- High Order error ratio (`OrderServiceHighErrorRate`)
+- High Order CPU (process CPU metric) (`OrderServiceHighCPU`)
+
+## 3. Capacity Planning
+
+Load simulation:
+- Execute concurrent requests to the Order API and observe metrics (CPU, request rate, errors)
+
+Observations and bottlenecks:
+- Order Service is the primary candidate for saturation under load
+- Database can become a bottleneck if connections/queries scale poorly
+
+Scaling strategies:
+- Horizontal scaling: replicate Order Service instances behind a load balancer
+- Vertical scaling: increase VM/container CPU and memory allocations
+- Database optimization: pooling, tuning, query optimization
+
+## 4. Evidence Required (Screenshots)
+
+- Screenshot M: Prometheus targets all `UP`
+- Screenshot N: Prometheus Alerts page showing loaded rules
+- Screenshot O: Grafana dashboard during load test
+- Screenshot P: Order service failure (BROKEN_DB_CONFIG=true) and alert firing
+- Screenshot Q: Service recovery after mitigation (BROKEN_DB_CONFIG=false)

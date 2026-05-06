@@ -38,8 +38,8 @@ resource "aws_security_group" "sre_sg" {
   }
 
   ingress {
-    from_port   = 9090
-    to_port     = 9090
+    from_port   = 9091
+    to_port     = 9091
     protocol    = "tcp"
     cidr_blocks = [var.allowed_cidr]
   }

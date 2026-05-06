@@ -3,12 +3,16 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
 from starlette.responses import Response
 
 app = FastAPI(title="Order Service")
 requests_total = Counter("order_requests_total", "Total requests for order service")
 errors_total = Counter("order_errors_total", "Total errors in order service")
+db_ready = Gauge(
+    "order_service_db_ready",
+    "1 if DB config is healthy (BROKEN_DB_CONFIG is false), else 0. Updated on each /metrics scrape.",
+)
 order_items = [
     {"order_id": 5001, "user_id": 100, "amount": 50.0},
     {"order_id": 5002, "user_id": 101, "amount": 75.5},
@@ -29,6 +33,11 @@ def db_config() -> dict[str, Any]:
         "db_name": os.getenv("DB_NAME", "orders_db"),
         "user": os.getenv("DB_USER", "postgres"),
     }
+
+
+def refresh_db_ready_gauge() -> None:
+    cfg = db_config()
+    db_ready.set(0.0 if cfg["host"] == "invalid-db-host" else 1.0)
 
 
 @app.get("/health")
@@ -66,4 +75,5 @@ def create_order(payload: OrderPayload):
 
 @app.get("/metrics")
 def metrics():
+    refresh_db_ready_gauge()
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)

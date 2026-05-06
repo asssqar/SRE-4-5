@@ -1,0 +1,41 @@
+groups:
+  - name: sre-microservices
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service is down"
+          description: "Prometheus cannot scrape {{ $labels.job }} (instance={{ $labels.instance }})"
+
+      - alert: OrderServiceDBNotReady
+        expr: order_service_db_ready == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Order Service DB config unhealthy"
+          description: "BROKEN_DB_CONFIG may be enabled or DB host is invalid"
+
+      - alert: OrderServiceHighErrorRate
+        expr: |
+          (rate(order_errors_total[2m]) / clamp_min(rate(order_requests_total[2m]), 0.001)) > 0.05
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Order Service error rate"
+          description: "Error ratio > 5% for 1m"
+
+      - alert: OrderServiceHighCPU
+        expr: |
+          rate(process_cpu_seconds_total{job="order-service"}[2m]) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage in Order Service container"
+          description: "Order Service CPU usage > 0.8 cores for 2m (process_cpu_seconds_total)"
+

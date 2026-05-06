@@ -3,12 +3,20 @@ services:
     build: ./frontend
     ports:
       - "80:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
     depends_on:
       - auth-service
       - product-service
       - order-service
       - user-service
       - chat-service
+    networks:
+      - sre
 
   auth-service:
     build: ./services/auth
@@ -17,6 +25,14 @@ services:
       - PORT=8001
     ports:
       - "8001:8001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - sre
 
   product-service:
     build: ./services/product
@@ -25,6 +41,14 @@ services:
       - PORT=8002
     ports:
       - "8002:8002"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - sre
 
   order-service:
     build: ./services/order
@@ -39,8 +63,16 @@ services:
       - BROKEN_DB_CONFIG=${BROKEN_DB_CONFIG:-false}
     ports:
       - "8003:8003"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
     depends_on:
       - postgres
+    networks:
+      - sre
 
   user-service:
     build: ./services/user
@@ -49,6 +81,14 @@ services:
       - PORT=8004
     ports:
       - "8004:8004"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - sre
 
   chat-service:
     build: ./services/chat
@@ -57,6 +97,14 @@ services:
       - PORT=8005
     ports:
       - "8005:8005"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8005/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - sre
 
   postgres:
     image: postgres:16
@@ -66,28 +114,53 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sre
 
   prometheus:
     image: prom/prometheus:latest
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
     ports:
-      - "9090:9090"
+      - "9091:9090"
+    restart: unless-stopped
     depends_on:
       - auth-service
       - product-service
       - order-service
       - user-service
       - chat-service
+    networks:
+      - sre
 
   grafana:
     image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
       - "3000:3000"
+    restart: unless-stopped
     depends_on:
       - prometheus
+    networks:
+      - sre
 
 volumes:
   postgres_data:
+
+networks:
+  sre:

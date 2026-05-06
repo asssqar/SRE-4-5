@@ -18,7 +18,7 @@ Provision a reproducible VM-based infrastructure using Terraform and expose requ
    - SSH: 22
    - HTTP: 80
    - Grafana: 3000
-   - Prometheus: 9090
+   - Prometheus: 9091
 
 ## Reproducibility Workflow
 

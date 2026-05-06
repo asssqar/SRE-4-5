@@ -17,7 +17,7 @@ This repository contains a containerized microservices system with Terraform inf
    - `docker compose up --build -d`
 2. Verify:
    - Frontend: `http://localhost`
-   - Prometheus: `http://localhost:9090`
+   - Prometheus: `http://localhost:9091`
    - Grafana: `http://localhost:3000`
 3. Check services:
    - Auth: `http://localhost:8001/health`
