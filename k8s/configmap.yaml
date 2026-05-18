@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-config
+  namespace: sre-microservices
+data:
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: orders_db
+  DB_USER: postgres
+  BROKEN_DB_CONFIG: "false"
+  REDIS_HOST: redis

@@ -1,74 +1,96 @@
-# Assignment 4-5: SRE + IaC Project
+# SRE End Term Project — Distributed Microservices
 
-This repository contains a containerized microservices system with Terraform infrastructure provisioning, monitoring stack, and incident response simulation artifacts.
+Full **Site Reliability Engineering** implementation: 6 microservices, Docker Compose / Swarm / Kubernetes, Terraform, Ansible, Prometheus + Grafana, incident simulation.
+
+**Repository:** https://github.com/asssqar/SRE-4-5.git
 
 ## Project Structure
 
-- `services/`: FastAPI microservices (`auth`, `product`, `order`, `user`, `chat`)
-- `frontend/`: Nginx-served web frontend
-- `monitoring/`: Prometheus configuration
-- `terraform/`: IaC files (`main.tf`, `variables.tf`, `outputs.tf`, `terraform.tfvars`)
-- `reports/`: Assignment 4 and 5 reports
-- `docker-compose.yml`: Full stack deployment
+| Path | Description |
+|------|-------------|
+| `services/` | Auth, Product, Order, Payment, Notification, User Profile (FastAPI) |
+| `frontend/` | Nginx control panel |
+| `docker-compose.yml` | Local full stack |
+| `docker-stack.yml` | Docker Swarm deployment |
+| `k8s/` | Kubernetes manifests (Deployments, Services, HPA) |
+| `terraform/` | AWS EC2 provisioning |
+| `ansible/` | VM setup and automated deploy |
+| `monitoring/` | Prometheus, Grafana, alerts |
+| `reports/` | SLI/SLO, incident, postmortem, end term report |
 
-## Local Deployment (Docker Compose)
+## Quick Start (Docker Compose)
 
-1. Build and run:
-   - `docker compose up --build -d`
-2. Verify:
-   - Frontend: `http://localhost`
-   - Prometheus: `http://localhost:9091`
-   - Grafana: `http://localhost:3000`
-3. Check services:
-   - Auth: `http://localhost:8001/health`
-   - Product: `http://localhost:8002/health`
-   - Order: `http://localhost:8003/health`
-   - User: `http://localhost:8004/health`
-   - Chat: `http://localhost:8005/health`
+```powershell
+docker compose up --build -d
+docker compose ps
+```
 
-## Unified Frontend (One Page for 5 Services)
+| URL | Purpose |
+|-----|---------|
+| http://localhost | Frontend (all 6 services) |
+| http://localhost:9091 | Prometheus |
+| http://localhost:3000 | Grafana (`admin` / `admin`) |
+| http://localhost:8001–8006 | Service health endpoints |
 
-Open `http://localhost` to use a single control panel that works with all services:
-- Auth: health + GET/POST login
-- Product: list + create product
-- Order: health/list + create order
-- User: list + create user
-- Chat: list + send message
+## Microservices
 
-The frontend uses Nginx reverse proxy routes (`/api/auth/*`, `/api/product/*`, `/api/order/*`, `/api/user/*`, `/api/chat/*`) so all requests work from one page without CORS issues.
+1. **Auth** (8001) — login simulation  
+2. **Product** (8002) — catalog  
+3. **Order** (8003) — orders + PostgreSQL  
+4. **User Profile** (8004) — users  
+5. **Notification** (8005) — alerts/email simulation  
+6. **Payment** (8006) — payment simulation  
 
-## Incident Simulation (Assignment 4)
+Supporting: **PostgreSQL**, **Redis**, **Prometheus**, **Grafana**
 
-Simulate an Order Service DB misconfiguration:
+## Docker Swarm
 
-1. Stop stack: `docker compose down`
-2. Set broken config:
-   - PowerShell: `$env:BROKEN_DB_CONFIG="true"`
-3. Start stack: `docker compose up --build -d`
-4. Validate failure:
-   - `http://localhost:8003/health` returns HTTP 500
-5. Mitigate:
-   - PowerShell: `$env:BROKEN_DB_CONFIG="false"`
-   - Restart order service: `docker compose up -d --build order-service`
-6. Confirm restoration:
-   - `http://localhost:8003/health` returns HTTP 200
+```bash
+docker swarm init
+docker compose build
+docker stack deploy -c docker-stack.yml sre
+```
 
-## Terraform Deployment (Assignment 5)
+## Kubernetes
 
-1. Update `terraform/terraform.tfvars` (`key_name`, AMI if needed).
-2. Run:
-   - `cd terraform`
-   - `terraform init`
-   - `terraform plan`
-   - `terraform apply`
-3. Capture public IP from output `instance_public_ip`.
+Build images, tag for K8s, apply manifests — see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-## Required Evidence (Screenshots)
+## Terraform (AWS VM)
 
-Collect screenshots for submission:
-- Running containers (`docker compose ps`)
-- Prometheus targets in UP state
-- Grafana dashboard panels
-- Order service failure during incident
-- Order service restored after mitigation
-- Terraform `plan` and `apply` outputs
+```bash
+cd terraform
+terraform init && terraform plan && terraform apply
+```
+
+## Ansible (deploy to VM)
+
+1. Set VM IP in `ansible/inventory/hosts.ini`
+2. `ansible-playbook ansible/playbooks/site.yml`
+
+## Incident Simulation
+
+```powershell
+$env:BROKEN_DB_CONFIG="true"
+docker compose up -d --build order-service
+# http://localhost:8003/health → 500
+
+$env:BROKEN_DB_CONFIG="false"
+docker compose up -d --build order-service
+```
+
+Details: `reports/assignment4_incident_report.md`, `reports/postmortem.md`
+
+## End Term Submission
+
+1. Run the stack and capture screenshots (containers, Prometheus, Grafana, incident, Terraform).
+2. Export **`reports/end_term_project_report.md`** to PDF.
+3. Upload **PDF with Git link** only (per assignment requirements).
+
+## Reports
+
+- `reports/end_term_project_report.md` — main end term document  
+- `reports/sli_slo.md` — SLI/SLO definitions  
+- `reports/assignment4_incident_report.md`  
+- `reports/assignment5_terraform_report.md`  
+- `reports/assignment6_automation_capacity_report.md`  
+- `reports/postmortem.md`

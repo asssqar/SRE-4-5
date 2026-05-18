@@ -1,0 +1,104 @@
+# Docker Swarm stack — deploy after: docker swarm init
+# docker stack deploy -c docker-stack.yml sre
+
+services:
+  frontend:
+    image: sre-frontend:latest
+    build: ./frontend
+    ports:
+      - "80:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+  auth-service:
+    image: sre-auth-service:latest
+    build: ./services/auth
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+  product-service:
+    image: sre-product-service:latest
+    build: ./services/product
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+  order-service:
+    image: sre-order-service:latest
+    build: ./services/order
+    environment:
+      - DB_HOST=postgres
+      - BROKEN_DB_CONFIG=false
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+  user-service:
+    image: sre-user-service:latest
+    build: ./services/user
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+  notification-service:
+    image: sre-notification-service:latest
+    build: ./services/notification
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+  payment-service:
+    image: sre-payment-service:latest
+    build: ./services/payment
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=orders_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+  redis:
+    image: redis:7-alpine
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - sre
+
+networks:
+  sre:
+    driver: overlay

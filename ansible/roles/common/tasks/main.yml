@@ -1,0 +1,19 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name:
+      - git
+      - curl
+      - python3-pip
+    state: present
+
+- name: Create project directory
+  ansible.builtin.file:
+    path: "{{ project_path }}"
+    state: directory
+    mode: "0755"

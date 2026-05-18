@@ -1,0 +1,23 @@
+---
+- name: Clone or update project repository on target host
+  ansible.builtin.git:
+    repo: https://github.com/asssqar/SRE-4-5.git
+    dest: "{{ project_path }}"
+    version: main
+    force: true
+
+- name: Deploy stack with Docker Compose
+  ansible.builtin.command:
+    cmd: docker compose up --build -d
+    chdir: "{{ project_path }}"
+  register: compose_up
+  changed_when: compose_up.rc == 0
+
+- name: Wait for order service health
+  ansible.builtin.uri:
+    url: http://127.0.0.1:8003/health
+    status_code: 200
+  register: order_health
+  retries: 12
+  delay: 5
+  until: order_health.status == 200

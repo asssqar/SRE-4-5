@@ -14,7 +14,8 @@ services:
       - product-service
       - order-service
       - user-service
-      - chat-service
+      - notification-service
+      - payment-service
     networks:
       - sre
 
@@ -61,6 +62,7 @@ services:
       - DB_USER=${DB_USER:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - BROKEN_DB_CONFIG=${BROKEN_DB_CONFIG:-false}
+      - REDIS_HOST=redis
     ports:
       - "8003:8003"
     restart: unless-stopped
@@ -71,6 +73,7 @@ services:
       retries: 10
     depends_on:
       - postgres
+      - redis
     networks:
       - sre
 
@@ -90,16 +93,32 @@ services:
     networks:
       - sre
 
-  chat-service:
-    build: ./services/chat
+  notification-service:
+    build: ./services/notification
     environment:
-      - SERVICE_NAME=chat-service
+      - SERVICE_NAME=notification-service
       - PORT=8005
     ports:
       - "8005:8005"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8005/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - sre
+
+  payment-service:
+    build: ./services/payment
+    environment:
+      - SERVICE_NAME=payment-service
+      - PORT=8006
+    ports:
+      - "8006:8006"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8006/health', timeout=2).read()"]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -125,6 +144,19 @@ services:
     networks:
       - sre
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - sre
+
   prometheus:
     image: prom/prometheus:latest
     volumes:
@@ -138,7 +170,8 @@ services:
       - product-service
       - order-service
       - user-service
-      - chat-service
+      - notification-service
+      - payment-service
     networks:
       - sre
 

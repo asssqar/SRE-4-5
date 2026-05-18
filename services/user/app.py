@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
 from starlette.responses import Response
 
-app = FastAPI(title="User Service")
+app = FastAPI(title="User Profile Service")
 requests_total = Counter("user_requests_total", "Total requests for user service")
 user_items = [
     {"id": 100, "name": "Alice"},

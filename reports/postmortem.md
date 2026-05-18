@@ -6,7 +6,7 @@ An intentional misconfiguration was introduced in the order service database con
 
 ## 2. Customer Impact
 
-Customers could not access order data while the incident was active. Authentication, product, user, and chat services remained operational.
+Customers could not access order data while the incident was active. Authentication, product, user, payment, and notification services remained operational.
 
 ## 3. Root Cause Analysis
 

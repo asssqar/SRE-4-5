@@ -134,14 +134,15 @@
           <button class="active" data-service="auth" onclick="showPanel('auth', this)">Auth Service</button>
           <button data-service="product" onclick="showPanel('product', this)">Product Service</button>
           <button data-service="order" onclick="showPanel('order', this)">Order Service</button>
-          <button data-service="user" onclick="showPanel('user', this)">User Service</button>
-          <button data-service="chat" onclick="showPanel('chat', this)">Chat Service</button>
+          <button data-service="user" onclick="showPanel('user', this)">User Profile</button>
+          <button data-service="notification" onclick="showPanel('notification', this)">Notification</button>
+          <button data-service="payment" onclick="showPanel('payment', this)">Payment</button>
         </nav>
       </aside>
 
       <main class="content">
         <div class="toolbar">
-          <span class="muted">Single-page panel to work with all 5 microservices.</span>
+          <span class="muted">Single-page panel for all 6 microservices (End Term SRE project).</span>
           <button class="action" onclick="checkAllHealth()">Check all health</button>
           <button class="action secondary" onclick="clearAll()">Clear output</button>
         </div>
@@ -192,8 +193,8 @@
         </section>
 
         <section class="panel" id="panel-user">
-          <h2>User Service</h2>
-          <p>Browse users and add a new user.</p>
+          <h2>User Profile Service</h2>
+          <p>Browse users and add a new user profile.</p>
           <div class="row">
             <button class="action" onclick="apiCall('/api/user/health', 'GET', null, 'userOut')">Health</button>
             <button class="action secondary" onclick="apiCall('/api/user/users', 'GET', null, 'userOut')">List users</button>
@@ -205,19 +206,35 @@
           <pre id="userOut"></pre>
         </section>
 
-        <section class="panel" id="panel-chat">
-          <h2>Chat Service</h2>
-          <p>Read and send chat messages.</p>
+        <section class="panel" id="panel-notification">
+          <h2>Notification Service</h2>
+          <p>Simulate email/alert notifications.</p>
           <div class="row">
-            <button class="action" onclick="apiCall('/api/chat/health', 'GET', null, 'chatOut')">Health</button>
-            <button class="action secondary" onclick="apiCall('/api/chat/messages', 'GET', null, 'chatOut')">List messages</button>
+            <button class="action" onclick="apiCall('/api/notification/health', 'GET', null, 'notificationOut')">Health</button>
+            <button class="action secondary" onclick="apiCall('/api/notification/notifications', 'GET', null, 'notificationOut')">List notifications</button>
           </div>
           <div class="row">
-            <input id="chatUser" placeholder="user" value="DemoUser" />
-            <input id="chatMessage" placeholder="message" value="Hello from UI" />
-            <button class="action" onclick="sendMessage()">Send message</button>
+            <input id="notifChannel" placeholder="channel" value="email" />
+            <input id="notifRecipient" placeholder="recipient" value="user@example.com" />
+            <input id="notifMessage" placeholder="message" value="Order shipped" />
+            <button class="action" onclick="sendNotification()">Send notification</button>
           </div>
-          <pre id="chatOut"></pre>
+          <pre id="notificationOut"></pre>
+        </section>
+
+        <section class="panel" id="panel-payment">
+          <h2>Payment Service</h2>
+          <p>Simulate payment processing for orders.</p>
+          <div class="row">
+            <button class="action" onclick="apiCall('/api/payment/health', 'GET', null, 'paymentOut')">Health</button>
+            <button class="action secondary" onclick="apiCall('/api/payment/payments', 'GET', null, 'paymentOut')">List payments</button>
+          </div>
+          <div class="row">
+            <input id="payOrderId" placeholder="order id" value="5001" />
+            <input id="payAmount" placeholder="amount" value="49.99" />
+            <button class="action" onclick="processPayment()">Process payment</button>
+          </div>
+          <pre id="paymentOut"></pre>
         </section>
       </main>
     </div>
@@ -278,15 +295,23 @@
         }, "userOut");
       }
 
-      function sendMessage() {
-        apiCall("/api/chat/messages", "POST", {
-          user: document.getElementById("chatUser").value,
-          message: document.getElementById("chatMessage").value
-        }, "chatOut");
+      function sendNotification() {
+        apiCall("/api/notification/notifications", "POST", {
+          channel: document.getElementById("notifChannel").value,
+          recipient: document.getElementById("notifRecipient").value,
+          message: document.getElementById("notifMessage").value
+        }, "notificationOut");
+      }
+
+      function processPayment() {
+        apiCall("/api/payment/payments", "POST", {
+          order_id: Number(document.getElementById("payOrderId").value),
+          amount: Number(document.getElementById("payAmount").value)
+        }, "paymentOut");
       }
 
       function clearAll() {
-        ["authOut", "productOut", "orderOut", "userOut", "chatOut"].forEach((id) => {
+        ["authOut", "productOut", "orderOut", "userOut", "notificationOut", "paymentOut"].forEach((id) => {
           document.getElementById(id).textContent = "";
         });
       }
@@ -296,7 +321,8 @@
         apiCall("/api/product/health", "GET", null, "productOut");
         apiCall("/api/order/health", "GET", null, "orderOut");
         apiCall("/api/user/health", "GET", null, "userOut");
-        apiCall("/api/chat/health", "GET", null, "chatOut");
+        apiCall("/api/notification/health", "GET", null, "notificationOut");
+        apiCall("/api/payment/health", "GET", null, "paymentOut");
       }
     </script>
   </body>

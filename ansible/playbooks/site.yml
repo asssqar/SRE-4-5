@@ -1,0 +1,14 @@
+---
+- name: SRE End Term — provision and deploy microservices stack
+  hosts: sre_nodes
+  gather_facts: true
+
+  roles:
+    - role: common
+      tags: [common]
+    - role: docker
+      tags: [docker]
+    - role: app
+      tags: [app]
+    - role: monitoring
+      tags: [monitoring]

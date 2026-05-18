@@ -89,10 +89,10 @@
     {
       "id": 5,
       "type": "stat",
-      "title": "chat-service UP",
+      "title": "notification-service UP",
       "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "targets": [{ "expr": "up{job=\"chat-service\"}", "refId": "A" }],
+      "targets": [{ "expr": "up{job=\"notification-service\"}", "refId": "A" }],
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal" },
       "fieldConfig": {
         "defaults": {
@@ -115,7 +115,8 @@
         { "expr": "sum(rate(product_requests_total[1m]))", "legendFormat": "product", "refId": "B" },
         { "expr": "sum(rate(order_requests_total[1m]))", "legendFormat": "order", "refId": "C" },
         { "expr": "sum(rate(user_requests_total[1m]))", "legendFormat": "user", "refId": "D" },
-        { "expr": "sum(rate(chat_requests_total[1m]))", "legendFormat": "chat", "refId": "E" }
+        { "expr": "sum(rate(notification_requests_total[1m]))", "legendFormat": "notification", "refId": "E" },
+        { "expr": "sum(rate(payment_requests_total[1m]))", "legendFormat": "payment", "refId": "F" }
       ]
     },
     {

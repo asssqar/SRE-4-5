@@ -15,7 +15,7 @@ This assignment extends Assignments 4 (incident response) and 5 (Terraform IaC) 
 
 The system is a Dockerized microservices architecture consisting of:
 - Frontend (Nginx reverse proxy + single control panel page)
-- Backend services (FastAPI): auth, product, order, user, chat
+- Backend services (FastAPI): auth, product, order, user, notification, payment
 - PostgreSQL database
 - Monitoring stack: Prometheus + Grafana
 - IaC: Terraform (AWS EC2 + security group)
